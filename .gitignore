@@ -1,0 +1,4 @@
+config/*.yml
+log
+tmp
+.DS_Store
