@@ -1,3 +1,4 @@
+public/plugin_assets
 config/*.yml
 log
 *sqlite3

@@ -9,6 +9,8 @@ RAILS_GEM_VERSION = '2.1.0' unless defined? RAILS_GEM_VERSION
 
 # Bootstrap the Rails environment, frameworks, and default configuration
 require File.join(File.dirname(__FILE__), 'boot')
+# Include Engines functionality
+require File.join(File.dirname(__FILE__), '../vendor/plugins/engines/boot')
 
 Rails::Initializer.run do |config|
   # Settings in config/environments/* take precedence over those specified here.
@@ -48,7 +50,7 @@ Rails::Initializer.run do |config|
   # Make sure the secret is at least 30 characters and all random, 
   # no regular words or you'll be exposed to dictionary attacks.
   config.action_controller.session = {
-    :session_key => '_rockwood_session',
+    :session_key => '_basic_session',
     :secret      => 'b8e3f90b5732eaa88768e25e76ecfb09521ad1710e245988cd5ce541b114d13135622ede84c86e1cc1f02c5eb959b6a16e77d73bfd70fb8d0f1550684e63ba90'
   }
 
