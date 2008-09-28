@@ -1,4 +1,7 @@
 config/*.yml
 log
+*sqlite3
+*swp
+public/stylesheets/*css
 tmp
 .DS_Store
