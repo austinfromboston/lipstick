@@ -1,0 +1,3 @@
+[submodule "vendor/plugins/linein"]
+	path = vendor/plugins/linein
+	url = git@github.com:austinfromboston/linein.git
