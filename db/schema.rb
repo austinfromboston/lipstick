@@ -9,6 +9,42 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 0) do
+ActiveRecord::Schema.define(:version => 20080927175337) do
+
+  create_table "account_people", :force => true do |t|
+    t.integer "account_id"
+    t.integer "person_id"
+  end
+
+  create_table "accounts", :force => true do |t|
+    t.float   "current_balance"
+    t.string  "organization_name"
+    t.integer "organization_id"
+  end
+
+  create_table "invoices", :force => true do |t|
+    t.datetime "sent_date"
+    t.datetime "period_ending_date"
+    t.text     "sent_to_email"
+    t.integer  "account_id"
+  end
+
+  create_table "invoices_line_items", :id => false, :force => true do |t|
+    t.integer "invoice_id"
+    t.integer "line_item_id"
+  end
+
+  create_table "line_items", :force => true do |t|
+    t.string   "name"
+    t.text     "description"
+    t.string   "billable_status"
+    t.integer  "source_id"
+    t.float    "initial_amount"
+    t.float    "final_amount"
+    t.datetime "activation_date"
+    t.datetime "writeoff_date"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
 
 end
