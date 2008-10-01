@@ -1,0 +1,7 @@
+.ui-block.span-12
+  %h6.info Edit Account
+  - form_for @account do |f|
+    = render :partial => 'form', :locals => { :f => f }
+    %p.submit
+      = f.submit "Update Account"
+
