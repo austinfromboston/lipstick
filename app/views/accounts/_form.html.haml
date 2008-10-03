@@ -15,37 +15,48 @@
         %li
           = link_to person.name, edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
     = link_to "add contact", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger'
-    = link_to "new contact", new_person_linein_path, :class => 'badge_trigger'
+    = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger'
 
 -content_for :sidebar do
   #sidebar_inset.js-hide
 
 -content_for :dom_ready do
   :plain
+    //load local inset in sidebar
     $('.sidebar_inset_trigger').livequery( 'click', function() {
-      $('#sidebar_inset').load( $(this).attr('href') + ' #content .ui-block', function() {
+      var selector = '#content .ui-block';
+      $('#sidebar_inset').load( $(this).attr('href') + ' '  + selector, function( text, status, response ) {
+        //$('#sidebar_inset').append( $('<div></div>').append( text ).find( selector + ' script' ));
         #{ render :partial => 'account_people/form_script' }
         RD.ui.after_load();
         $('#sidebar_inset').show('slow');
       } );
       return false;
     } );
+
+    //load badge in sidebar
     $('.badge_trigger').livequery( 'click', function() {
       RD.ui.load_script( $(this).attr('href') );
       setTimeout( function() { $('#sidebar_inset').show('slow'); RD.ui.after_load(); }, 1500 );
       return false;
     });
 
+    //submit sidebar
+    //$('#sidebar_inset form:not(#new_person)').livequery('submit', function() {
     $('#sidebar_inset form').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
         $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
         $('#sidebar_inset *').remove();
       } } ) );
-      $(this).fn('submit', 'json');
+      //$(this).fn('submit', 'json');
+      $(this).fn('submit');
       return false;
     } );
+  
+
     //delete link
     $('.show_delete_block').livequery( 'click', function() { $('.delete_block').toggle(); return false; } ); 
+
     //organization remote select
     #{ "RD.ui.load_script( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.json?callback=RD.ui.show_badge&badge=select&badge_target=%23select_orgs_block&selected=' + $('#account_organization_id').val() );" }
     $('select#organization_name').livequery('change', function() {
