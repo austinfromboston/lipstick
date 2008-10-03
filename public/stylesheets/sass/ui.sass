@@ -1,0 +1,127 @@
+@import settings
+ul.plain
+  :list-style none
+  :margin 0
+
+ol.plain
+  :margin 0
+
+ul#breadcrumb
+  li
+    :display inline
+
+h6.info
+  :text-transform uppercase
+  :font-size 10px
+  :background-color = !heading_bg
+  :color = !heading_text
+  :padding 1px 20px 1px 20px
+  :float left
+  :border grey solid
+  :border-width  0 0 1px 0
+  a
+    :color = !heading_text
+    :text-decoration none
+  .inactive &
+    :background-color = !heading_text
+    :border-width  0
+    a
+      :color  = !heading_bg
+    &:hover
+      :background-color = !heading_bg
+      a
+        :color = !heading_text
+
+.js-hidden, .js-only, .js-staging
+  :display none
+
+#available-items .menu
+  :display none
+
+.busy
+  :background-image url(/images/ui/onramp-busy.gif)
+  :background-repeat no-repeat
+  :color transparent
+  :padding-left 20px
+
+.ui-block
+  :border grey solid
+  :background-color #F6F6F6
+  :border-width  1px 0 0px 0
+  .content
+    :min-height 50px
+    :min-height 50px
+    :height auto
+  &.inactive
+    :min-height 0
+    :background-color transparent
+    
+
+body.edit .placements_list
+  li
+    :cursor move
+    :cursor hand
+.shadow-droppable
+  :background-image url(/images/ui/droppable.gif)
+  :background-repeat no-repeat
+  :background-position 2px 10px
+
+.placements_list
+  > li
+    :margin-bottom 1em
+  h2
+    :margin-bottom 2px
+  .status
+    :display inline-block
+    
+
+.bright
+  :background-color red
+  :border blue solid 1px
+
+.shadow, .shadow-droppable
+  :background-color #ababab
+  :border 3px solid #8e8e8e
+  :opacity .6
+
+
+.peeking
+  :height 2px
+  :min-height inherit
+  :padding 0
+  :overflow hidden
+  :background-color #ff9999
+
+#remove-items
+  :background-image url(/images/ui/trash-standard.png)
+  :background-repeat no-repeat
+  :background-position 25px 20px 
+  .shadow
+    :background-color #ff2222
+    :border 3px solid #8e8e8e
+    :opacity .6
+
+#ajax_message
+  :z-index 10000
+  :display none
+  :opacity .7
+  :background-color #959595
+  :color #FFFFFF
+  :padding 20px
+  :font-size 30px
+  :text-align center
+  :position fixed
+  :width 50%
+  :top 30%
+  :left 25%
+
+#available-items
+  li
+    :font-size .75em
+
+.sidebar-only
+  :display none
+
+#sidebar
+  .sidebar-only
+    :display inherit

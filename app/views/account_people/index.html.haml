@@ -1,0 +1,4 @@
+%ul
+  - for account_person in @account_people
+    %li
+      = render :partial => 'account_person', :object => account_person

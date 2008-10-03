@@ -1,0 +1,43 @@
+!!!
+%head
+  %title
+    = controller.controller_name.titleize
+    &mdash;
+    = controller.action_name.titleize
+  = stylesheet_link_tag 'blueprint/print', :media => 'print'
+  = stylesheet_link_tag 'blueprint/screen', :media => 'screen, projection'
+  <!--[if IE]>
+  = stylesheet_link_tag 'blueprint/ie'
+  <![endif]-->
+  = stylesheet_link_tag 'application'
+  = stylesheet_link_tag 'forms'
+  = stylesheet_link_tag 'ui'
+  = yield :stylesheets
+%body
+  #outer_container.span-24
+    #header.container
+      = render 'layouts/menu'
+      .flash-notice
+        = flash[:notice]
+      .flash-error
+        = flash[:error]
+    #main.container
+      #content
+        = yield
+      #sidebar.span-8
+        = yield :sidebar
+    #footer.container
+
+  = javascript_include_tag 'jquery/jquery-1.2.6.js'
+  = javascript_include_tag 'jquery/plugins/jquery.fn.js'
+  = javascript_include_tag 'jquery/plugins/jquery.livequery.js'
+  = javascript_include_tag 'remote_form'
+  = javascript_include_tag 'ui'
+  = yield :javascript_lib
+  - javascript_tag do
+    $( function() {
+    $('.js-hide').hide();
+    = yield :dom_ready
+    $('.js-only').show();
+    } );
+

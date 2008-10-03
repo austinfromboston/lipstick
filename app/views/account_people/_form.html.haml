@@ -1,0 +1,9 @@
+%p
+  = f.label :person_id
+  %span#select_people_block
+  = f.hidden_field :person_id
+%p
+  = f.hidden_field :account_id
+
+- content_for :dom_ready do
+  = render :partial => 'form_script', :locals => { :f => f }

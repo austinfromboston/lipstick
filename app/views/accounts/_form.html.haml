@@ -1,6 +1,53 @@
 %p
   = f.label :organization_id
-  = f.select :organization_id, organization_options
+  %span#select_orgs_block
+  = f.hidden_field :organization_id
 %p
   = f.label :current_balance
   = f.text_field :current_balance, :size => 15
+
+#contacts_block
+  %fieldset#contacts_list
+    %legend Contacts
+    %ul
+      - for person in f.object.people_list
+        - contact = f.object.account_people.find_by_person_id( person.id )
+        %li
+          = link_to person.name, edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
+    = link_to "add contact", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger'
+    = link_to "new contact", new_person_linein_path, :class => 'badge_trigger'
+
+-content_for :sidebar do
+  #sidebar_inset.js-hide
+
+-content_for :dom_ready do
+  :plain
+    $('.sidebar_inset_trigger').livequery( 'click', function() {
+      $('#sidebar_inset').load( $(this).attr('href') + ' #content .ui-block', function() {
+        #{ render :partial => 'account_people/form_script' }
+        RD.ui.after_load();
+        $('#sidebar_inset').show('slow');
+      } );
+      return false;
+    } );
+    $('.badge_trigger').livequery( 'click', function() {
+      RD.ui.load_script( $(this).attr('href') );
+      setTimeout( function() { $('#sidebar_inset').show('slow'); RD.ui.after_load(); }, 1500 );
+      return false;
+    });
+
+    $('#sidebar_inset form').livequery('submit', function() {
+      $(this).fn( RD.remote_form( { response: function( response ) {
+        $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
+        $('#sidebar_inset *').remove();
+      } } ) );
+      $(this).fn('submit', 'json');
+      return false;
+    } );
+    //delete link
+    $('.show_delete_block').livequery( 'click', function() { $('.delete_block').toggle(); return false; } ); 
+    //organization remote select
+    #{ "RD.ui.load_script( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.json?callback=RD.ui.show_badge&badge=select&badge_target=%23select_orgs_block&selected=' + $('#account_organization_id').val() );" }
+    $('select#organization_name').livequery('change', function() {
+      $('#account_organization_id').val( $(this).val() );
+    });

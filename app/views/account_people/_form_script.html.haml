@@ -1,0 +1,5 @@
+:plain
+  #{ "RD.ui.load_script( '#{Linein::CONFIG[:aquarius][:json_url]}/people.json?callback=RD.ui.show_badge&badge=select&badge_target=%23select_people_block&selected=' + $('#account_person_person_id').val() );" }
+  $('select#person_name').livequery('change', function() {
+    $('#account_person_person_id').val( $(this).val() );
+  });
