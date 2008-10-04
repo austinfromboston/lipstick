@@ -116,13 +116,14 @@
 							// prepare form
 							function queryToObject(q) {
 								var r = {},
-									d = decodeURIComponent;
+									d = decodeURIComponent,
+                                    dd = function( value ) { return value.replace(/\+/g, "%20" ) };
 								$.each(q.split("&"), function (k, v) {
 									if (v.length) {
 										var parts = v.split('='),
-											n = d(parts.shift()),
+											n = d(dd(parts.shift())),
 											curr = r[n];
-										v = d(parts.join('='));
+										v = d(dd(parts.join('=')));
 										if (typeof curr === 'undefined') {
 											r[n] = v;
 										} else {
