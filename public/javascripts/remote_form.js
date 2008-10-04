@@ -18,7 +18,8 @@ RD.remote_form = function( extension ) {
 
       //this refers to a form tag
       var url = $(this).attr('action') + request_format;
-      var data = $(this).serialize();
+      var data = $(this).serializeArray();
+      data[ data.length ] = { name: "windowname", value: true };
       //associate the current context to a local variable for use in the response callback
       var self = this;
 
