@@ -72,7 +72,6 @@
 							// prepare frame
 							frameCounter += 1;
 							frameName = "jQuery.ajax.windowName." + ('' + Math.random()).substr(2, 8);
-							var form = document.createElement('form');
 							frame = document.createElement($.browser.msie? '<iframe name="' + frameName + '" onload="'+ frameName + '.callback()">' : 'iframe');
 							frame.style.display = 'none';
 							window[frameName + '.callback'] = frame.onload = function (interval) {
@@ -103,66 +102,76 @@
                                     frame.contentWindow.location = local;
 								}
 							};
-							//ival = setInterval(function () {
-								//window[frameName + '.callback'](true);
-							//}, 17);
 							setTimeout(function () { // stop after 2 mins
-								//clearTimeout(ival);
 								cleanup();
 							}, 120000);
 							frame.name = frameName;
 							frame.id = frameName;
 							$('body')[0].appendChild(frame);
-							// prepare form
-							function queryToObject(q) {
-								var r = {},
-									d = decodeURIComponent,
-                                    dd = function( value ) { return value.replace(/\+/g, "%20" ) };
-								$.each(q.split("&"), function (k, v) {
-									if (v.length) {
-										var parts = v.split('='),
-											n = d(dd(parts.shift())),
-											curr = r[n];
-										v = d(dd(parts.join('=')));
-										if (typeof curr === 'undefined') {
-											r[n] = v;
-										} else {
-											if (curr.constructor === Array) {
-												r[n].push(v);
-											} else {
-												r[n] = [curr].concat(v);
-											}
-										}
-									}
-								});
-								return r;
-							}
-							document.getElementsByTagName('body')[0].appendChild(form);
-							$.each(queryToObject(data), function (k, v) {
-								function setVal(k, v) {
-									var input = document.createElement("input");
-									input.type = 'hidden';
-									input.name = k;
-									input.value = v;
-									form.appendChild(input);
-								}
-								if (v.constuctor === Array) {
-									$.each(v, function (i, v) {
-										setVal(k, v);
-									});
-								} else {
-									setVal(k, v);
-								}
-							});
-							form.method = 'POST';
-							form.action = url;
-							form.target = frameName;
-							frame.contentWindow.location = 'about:blank'; // opera likes this
-							form.submit();
-                            //request sent
-							this.readyState = 2;
-							this.onreadystatechange();
-							form.parentNode.removeChild(form);
+                            if( s.type.match(/GET/i)) {
+                              if(s.data && s.data.length) {
+                                s.url += ( s.url.indexOf("?") == -1 ? "?" : "&" ) + s.data;
+                              }
+                              frame.src = s.url;
+                              console.log( s.url );
+                              if( frame.contentWindow ) {
+                                frame.contentWindow.location.replace(s.url);
+                              }
+                              this.readyState = 2;
+                              this.onreadystatechange();
+                            } else if( s.type.match(/POST/i)) {
+                              // prepare form
+                              var form = document.createElement('form');
+                              function queryToObject(q) {
+                                  var r = {},
+                                      d = decodeURIComponent,
+                                      dd = function( value ) { return value.replace(/\+/g, "%20" ) };
+                                  $.each(q.split("&"), function (k, v) {
+                                      if (v.length) {
+                                          var parts = v.split('='),
+                                              n = d(dd(parts.shift())),
+                                              curr = r[n];
+                                          v = d(dd(parts.join('=')));
+                                          if (typeof curr === 'undefined') {
+                                              r[n] = v;
+                                          } else {
+                                              if (curr.constructor === Array) {
+                                                  r[n].push(v);
+                                              } else {
+                                                  r[n] = [curr].concat(v);
+                                              }
+                                          }
+                                      }
+                                  });
+                                  return r;
+                              }
+                              document.getElementsByTagName('body')[0].appendChild(form);
+                              $.each(queryToObject(data), function (k, v) {
+                                  function setVal(k, v) {
+                                      var input = document.createElement("input");
+                                      input.type = 'hidden';
+                                      input.name = k;
+                                      input.value = v;
+                                      form.appendChild(input);
+                                  }
+                                  if (v.constuctor === Array) {
+                                      $.each(v, function (i, v) {
+                                          setVal(k, v);
+                                      });
+                                  } else {
+                                      setVal(k, v);
+                                  }
+                              });
+                              form.method = 'POST';
+                              form.action = url;
+                              form.target = frameName;
+                              frame.contentWindow.location = 'about:blank'; // opera likes this
+                              form.submit();
+                              //request sent
+                              this.readyState = 2;
+                              this.onreadystatechange();
+                              form.parentNode.removeChild(form);
+                            }
 							if (frame.contentWindow) {
 								frame.contentWindow.name = defaultName;
 							}
