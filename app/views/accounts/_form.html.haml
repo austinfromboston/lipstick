@@ -16,12 +16,18 @@
           = link_to person.name, edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
     = link_to "add contact", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger'
     = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger'
+%p
+  = link_to "test" , "#test", :id => 'test_link'
 
 -content_for :sidebar do
   #sidebar_inset.js-hide
 
 -content_for :dom_ready do
   :plain
+    $('#test_link').click( function() {
+      $.get( 'https://local-aquarius.org/people/4639', { windowname: true }, function( response, status ) {
+      });
+    } );
     //load local inset in sidebar
     $('.sidebar_inset_trigger').livequery( 'click', function() {
       var selector = '#content .ui-block';
