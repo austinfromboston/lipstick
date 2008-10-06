@@ -17,8 +17,7 @@
 **/
 (function () {
     var $ = window.jQuery,
-        _ajax = $.ajax,
-        frameCounter = 0;
+        _ajax = $.ajax;
     $.extend({
         ajax: function (s) {
             var remote = /^(?:\w+:)?\/\/([^\/?#]+)/,
@@ -26,6 +25,7 @@
             if ( localdom && localdom[1] !== location.host) { 
                 // indicate our desire for window.name communication
                 s.url += (s.url.match(/\?/) ? '&' : '?') + "windowname=" + (s.authElement ? "auth" : true);
+
                 // when targetting a remote location use window.name transport
                 s.xhr = function () {
                     var url = '',
@@ -33,21 +33,25 @@
                         frame = '',
                         defaultName = 'jQuery.windowName.transport.frame',
                         u = null;
+
                     function cleanup() {
-                        try {
-                            delete window[frameName + '.callback'];
-                        } catch (er) {
-                            window[frameName + '.callback'] = function () {};
+                        if (u.frameCounter !== undefined ) {
+                          //try {
+                          //  delete jQuery.ajax.windowName[jQuery.ajax.windowName._frameCounter];
+                          //} catch (er) {
+                          //    jQuery.ajax.windowName[u.frameCounter] = function () {};
+                          //}
                         }
                         setTimeout(function () {
                             $(frame).remove();
                         }, 100);
                     }
+
                     function setData() {
                         try {
                             var data = frame.contentWindow.name;
                             if (typeof data === 'string') {
-                                if (data === defaultName) {
+                                if (data === frameName) {
                                     u.status = 501;
                                     u.statusText = 'Not Implemented';
                                 } else {
@@ -60,8 +64,10 @@
                                 u.onreadystatechange();
                                 cleanup();
                             }
-                        } catch (er) {}
+                        } catch (er) {
+                        }
                     }
+
                     u = {
                         abort: function () {
                             cleanup();
@@ -77,35 +83,28 @@
                             this.readyState = 1;
                             this.onreadystatechange();
                         },
-                        //if(dojo.isMoz && ![].reduce){
                         send: function (data) {
                             // prepare frame
-                            frameCounter += 1;
-                            frameName = "jQuery.ajax.windowName." + ('' + Math.random()).substr(2, 8);
-                            frame = document.createElement($.browser.msie? '<iframe name="' + frameName + '" onload="'+ frameName + '.callback()">' : 'iframe');
+                            var frameCounter = this.frameCounter = jQuery.ajax.windowName._frameCounter++;
+                            frameName = window.location.href.substr(0, window.location.href.indexOf('/', 8)) + '/robots.txt' + '#' + frameCounter;
+                            frame = document.createElement($.browser.msie? '<iframe name="' + frameName + '" onload="jQuery.ajax.windowName['+frameCounter+']()">' : 'iframe');
                             frame.style.display = 'none';
-                            window[frameName + '.callback'] = frame.onload = function (interval) {
+                            function styleFrame(frame ) {
+                              frame.style.width  = '100%';
+                              frame.style.height = '100%';
+                              frame.style.border = '0px';
+                            }
+                            styleFrame(frame);
+
+                            //frame.onload callback
+                            $.ajax.windowName[frameCounter]  = frame.onload = function () {
                                 var local = window.location.href.substr(0, window.location.href.indexOf('/', 8)) + '/robots.txt';
-                                function is_local() {
-                                    var c = false;
-                                    try {
-                                        c = !!frame.contentWindow.location.href;
-                                        // try to get location - if we can we're still local and have to wait some more...
-                                    } catch (er) {
-                                        // if we're at foreign location we're sure we can proceed
-                                    }
-                                    return c;
-                                }
                                 try {
                                     if (frame.contentWindow.location.href === 'about:blank') {
                                         return;
                                     }
                                 } catch (er) {}
-                                if (u.readyState === 3 && is_local()) {
-                                    //redirect completed, data should be ready
-                                    setData();
-                                }
-                                if (u.readyState === 2 && !is_local()) {
+                                if (u.readyState === 2 ) {
                                     //waiting for data
                                     u.readyState = 3;
                                     u.onreadystatechange();
@@ -113,10 +112,18 @@
                                     // workarounds would be welcome
                                     frame.contentWindow.location = local;
                                 }
+                                try {
+                                  if (u.readyState === 3 ) {
+                                      //redirect completed, data should be ready
+                                      setData();
+                                  }
+                                }
+                                catch(e){
+                                }
                             };
-                            setTimeout(function () { // stop after 2 mins
-                                cleanup();
-                            }, 120000);
+
+
+
                             frame.name = frameName;
                             frame.id = frameName;
                             $('body')[0].appendChild(frame);
@@ -125,7 +132,6 @@
                                 s.url += ( s.url.indexOf("?") == -1 ? "?" : "&" ) + s.data;
                               }
                               frame.src = s.url;
-                              console.log( s.url );
                               if( frame.contentWindow ) {
                                 frame.contentWindow.location.replace(s.url);
                               }
@@ -134,10 +140,10 @@
                             } else if( s.type.match(/POST/i)) {
                               // prepare form
                               var form = document.createElement('form');
-                              function queryToObject(q) {
+                              var queryToObject = function (q) {
                                   var r = {},
-                                      d = decodeURIComponent,
-                                      dd = function( value ) { return value.replace(/\+/g, "%20" ) };
+                                      d = decodeURIComponent;
+                                  function dd( value ) { return value.replace(/\+/g, "%20" );  }
                                   $.each(q.split("&"), function (k, v) {
                                       if (v.length) {
                                           var parts = v.split('='),
@@ -156,8 +162,8 @@
                                       }
                                   });
                                   return r;
-                              }
-                              document.getElementsByTagName('body')[0].appendChild(form);
+                              };
+                              $('body')[0].appendChild(form);
                               $.each(queryToObject(data), function (k, v) {
                                   function setVal(k, v) {
                                       var input = document.createElement("input");
@@ -185,8 +191,11 @@
                               form.parentNode.removeChild(form);
                             }
                             if (frame.contentWindow) {
-                                frame.contentWindow.name = defaultName;
+                                frame.contentWindow.name = frameName;
                             }
+                            setTimeout(function () { // stop after 2 mins
+                                cleanup();
+                            }, 120000);
                         },
                         setRequestHeader: function (key, value) {
                         },
@@ -195,7 +204,8 @@
                         responseText: '',
                         responseXML: null,
                         status: null,
-                        statusText: null
+                        statusText: null,
+                        frameCounter: null
                     };
                     return u;
                 };
@@ -203,4 +213,6 @@
             return _ajax( s );
         }
     });
+    jQuery.ajax.windowName = jQuery.ajax.windowName || [];  
+    jQuery.ajax.windowName._frameCounter = 0;
 })();
