@@ -15,6 +15,7 @@ RD.remote_form = function( extension ) {
       //request_format is the extension to place on the form's action attribute
       var request_format = '';
       if( format !== undefined ) { request_format = '.' + format; };
+      if( format === 'json' ) { request_format = '.js'; };
 
       //this refers to a form tag
       var url = $(this).attr('action') + request_format;

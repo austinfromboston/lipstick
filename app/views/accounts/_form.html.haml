@@ -14,20 +14,19 @@
         - contact = f.object.account_people.find_by_person_id( person.id )
         %li
           = link_to person.name, edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
-    = link_to "add contact", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger'
-    = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger'
-%p
-  = link_to "test" , "#test", :id => 'test_link'
+    = link_to "add contact", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger', :id => 'add_contact_link'
+    = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger', :'data-badge' =>'new_remote_form'
 
 -content_for :sidebar do
   #sidebar_inset.js-hide
 
+-#content_for :javascript_lib do
+  = javascript_include_tag "dojo/dojo"
+  = javascript_include_tag "jquery/plugins/dojo.windowName.js"
+
 -content_for :dom_ready do
   :plain
-    $('#test_link').click( function() {
-      $.get( 'https://local-aquarius.org/people/4639', { windowname: true }, function( response, status ) {
-      });
-    } );
+
     //load local inset in sidebar
     $('.sidebar_inset_trigger').livequery( 'click', function() {
       var selector = '#content .ui-block';
@@ -42,29 +41,55 @@
 
     //load badge in sidebar
     $('.badge_trigger').livequery( 'click', function() {
-      RD.ui.load_script( $(this).attr('href') );
-      setTimeout( function() { $('#sidebar_inset').show('slow'); RD.ui.after_load(); }, 1500 );
+      $.ajax( { url: $(this).attr('href') + '.js', type: 'GET', dataType: 'jsonp', 
+        data: { badge: $(this).attr('data-badge'), badge_target: '#sidebar_inset' },
+        success: function( response ) {
+          RD.ui.show_badge( response );
+          $('#sidebar_inset').show('slow'); 
+          RD.ui.after_load();
+        }} );
       return false;
     });
 
     //submit sidebar
-    //$('#sidebar_inset form:not(#new_person)').livequery('submit', function() {
-    $('#sidebar_inset form').livequery('submit', function() {
+    //$('#sidebar_inset form').livequery('submit', function() {
+    $('#sidebar_inset form:not(#new_person)').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
         $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
         $('#sidebar_inset *').remove();
       } } ) );
-      //$(this).fn('submit', 'json');
-      $(this).fn('submit');
+      $(this).fn('submit', 'json');
       return false;
     } );
   
+    //submit new linked person
+    $('form#new_linked_person').livequery('submit', function() {
+      $(this).fn( RD.remote_form( { response: function( response ) {
+        console.log( 'made link' );
+        $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
+      }} ));
+      return $(this).fn('submit', 'json');
+    } );
+
+    //submit new person
+    $('#sidebar_inset form#new_person').livequery('submit', function() {
+      $(this).fn( RD.remote_form( { response: function( response ) {
+        if( response.person.id ) {
+          $('form#new_linked_person #account_person_person_id').val( response.person.id );
+          $('form#new_linked_person').submit();
+        }
+        $('#sidebar_inset *').remove();
+      } } ) );
+      $(this).fn('submit', 'json');
+      return false;
+    } );
 
     //delete link
     $('.show_delete_block').livequery( 'click', function() { $('.delete_block').toggle(); return false; } ); 
 
     //organization remote select
-    #{ "RD.ui.load_script( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.json?callback=RD.ui.show_badge&badge=select&badge_target=%23select_orgs_block&selected=' + $('#account_organization_id').val() );" }
+    //RD.ui.load_script( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.js?callback=RD.ui.show_badge&badge=select&badge_target=%23select_orgs_block&selected=' + $('#account_organization_id').val() );
+    $.getJSON( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.js?callback=?', { badge: 'select', badge_target: '#select_orgs_block', selected: $('#account_organization_id').val() }, RD.ui.show_badge );
     $('select#organization_name').livequery('change', function() {
       $('#account_organization_id').val( $(this).val() );
     });

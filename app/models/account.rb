@@ -7,6 +7,7 @@ class Account < ActiveRecord::Base
 
   def people_list
     person_ids = account_people.map(&:person_id)
+    return [] if person_ids.empty?
     Person.find :all, :params => { :ids => person_ids }
   end
 end
