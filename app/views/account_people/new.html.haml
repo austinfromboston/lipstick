@@ -1,6 +1,6 @@
 .ui-block.span-8
   %h6.info New Account Contact
-  - form_for @account_person, :html => { :class => 'with_remote_select' } do |f|
+  - form_for @account_person do |f|
     = render :partial => 'form', :locals => { :f => f }
     %p.submit
       = f.submit "Create Link"

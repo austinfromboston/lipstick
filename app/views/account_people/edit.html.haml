@@ -1,12 +1,12 @@
 .ui-block.span-8
   %h6.info Edit Account Contact
-  - form_for @account_person, :html => { :class => 'with_remote_select' } do |f|
+  - form_for @account_person do |f|
     = render :partial => 'form', :locals => { :f => f }
     %p.submit
       = f.submit "Update"
 
   = link_to "delete", "delete", :class => 'show_delete_block'
-  - form_for @account_person, {}, :html => { :class => 'js-hide delete_block', :method => :delete } do |f|
+  - form_for @account_person, {}, :html => { :class => 'js-hide delete_block advanced', :method => :delete } do |f|
     %p.submit
       = f.submit "Delete this Account/Contact relationship", :class => 'delete button'
   

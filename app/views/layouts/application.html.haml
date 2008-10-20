@@ -31,15 +31,18 @@
   = javascript_include_tag 'jquery/jquery-1.2.6.js'
   = javascript_include_tag 'jquery/plugins/jquery.fn.js'
   = javascript_include_tag 'jquery/plugins/jquery.livequery.js'
+  = javascript_include_tag 'jquery/plugins/jquery.metadata.js'
   -#= javascript_include_tag 'jquery/plugins/jquery.windowName.plugin.js'
   = javascript_include_tag 'jquery/plugins/jquery.xwindow_name.js'
   = javascript_include_tag 'remote_form'
   = javascript_include_tag 'ui'
   = yield :javascript_lib
   - javascript_tag do
+    $.metadata.setType('attr', 'metadata');
+    $('.js-hide').livequery( function() { $(this).hide(); } );
+    $('.js-only').livequery( function() { $(this).removeClass('js-only'); } );
+
     $( function() {
-    $('.js-hide').hide();
     = yield :dom_ready
-    $('.js-only').show();
     } );
 

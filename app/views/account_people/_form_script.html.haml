@@ -1,5 +1,10 @@
 :plain
-  $.getJSON( '#{Linein::CONFIG[:aquarius][:json_url]}/people.js?callback=?', { badge: 'select', badge_target: '#select_people_block', selected: $('form:visible #account_person_person_id').val() }, RD.ui.show_badge );
-  $('select#person_name').livequery('change', function() {
-    $('form:visible #account_person_person_id').val( $(this).val() );
-  });
+  $('.remote_select').livequery( function() {
+    var self = this, meta = $(this).metadata();
+    $.getJSON( meta.get + '.js?callback=?', { badge: 'select' }, function( response ) {
+      $(self).hide().after( '<div class="remote_select_block"></div>')
+            .next().html(response.content )
+            .find('select').val( $(self).val() )
+            .change( function() { $(self).val($(this).val()); } ); 
+    } );
+  } );

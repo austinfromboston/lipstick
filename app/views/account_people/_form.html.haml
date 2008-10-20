@@ -1,7 +1,6 @@
 %p
   = f.label :person_id
-  %span#select_people_block
-  = f.hidden_field :person_id
+  = f.text_field :person_id, :class => 'remote_select', :metadata => { :get => people_linein_path }.to_json
 %p
   = f.hidden_field :account_id
 

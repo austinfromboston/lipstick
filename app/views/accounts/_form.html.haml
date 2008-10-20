@@ -15,45 +15,42 @@
         - for person in f.object.people_list
           - contact = f.object.account_people.find_by_person_id( person.id )
           %li
-            = link_to person.name, edit_person_linein_path( contact ), :class => 'badge_trigger', :'data-badge' =>'remote_edit'
-            = link_to 'affiliation', edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
-      = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger', :'data-badge' =>'new_remote_form'
-      = link_to "add affiliation", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger'
+            = link_to person.name, edit_person_linein_path( contact ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_person)' }.to_json
+            = link_to 'affiliation', edit_account_person_path( contact ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_account_person)' }.to_json
+      = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_person)' }.to_json
+      = link_to "add affiliation", new_account_account_person_path( f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_account_person)' }.to_json
 
 -content_for :sidebar do
-  #sidebar_inset.js-hide
+  #sidebar_inset.js-staging
 
 -content_for :dom_ready do
   :plain
+    //account_person name select
+    #{ render :partial => 'account_people/form_script' }
 
-    //load local inset in sidebar
-    $('.sidebar_inset_trigger').livequery( 'click', function() {
-      var selector = '#content .ui-block';
-      $('#sidebar_inset').load( $(this).attr('href') + ' '  + selector, function( response ) {
-        #{ render :partial => 'account_people/form_script' }
-        RD.ui.after_load();
+    //remote_sidebar
+    $('.remote_sidebar').livequery('click', function() {
+      var meta = $(this).metadata();
+      $('#sidebar_inset').load( $(this).attr('href') + ' '  + meta.selector, function( response ) {
         $('#sidebar_inset').show('slow');
-      } );
+        if( meta.remote_domain !== undefined ) {
+          $('#sidebar_inset a').each( RD.ui.remote_connect( meta.remote_domain, 'href' ) );
+          $('#sidebar_inset form').each( RD.ui.remote_connect( meta.remote_domain, 'action' ) );
+        }
+      });
       return false;
     } );
 
-    //load badge in sidebar
-    $('.badge_trigger').livequery( 'click', function() {
-      $.ajax( { url: $(this).attr('href') + '.js', type: 'GET', dataType: 'jsonp', 
-        data: { badge: $(this).attr('data-badge'), badge_target: '#sidebar_inset' },
-        success: function( response ) {
-          RD.ui.show_badge( response );
-          $('#sidebar_inset').show('slow'); 
-          RD.ui.after_load();
-        }} );
-      return false;
-    });
+    //contacts list
+    $('#contacts_block').bind( 'refresh', function() {
+      $(this).load( window.location + ' #contacts_list' );
+    } );
+
 
     //submit sidebar
-    //$('#sidebar_inset form').livequery('submit', function() {
-    $('#sidebar_inset form:not(.badge)').livequery('submit', function() {
+    $('#sidebar_inset form[id*=person]:not(#new_person)').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
-        $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
+        $('#contacts_block').trigger('refresh');
         $('#sidebar_inset *').remove();
       } } ) );
       $(this).fn('submit', 'json');
@@ -63,50 +60,23 @@
     //submit new linked person
     $('form#new_linked_person').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
-        $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
+        $('#contacts_block').trigger('refresh');
       }} ));
       return $(this).fn('submit', 'json');
     } );
 
     //submit new person
-    $('#sidebar_inset form.badge').livequery('submit', function() {
-      var submit_actions = { response: function() { $('#sidebar_inset *').remove(); }};
-      if( $(this).is("#new_person")) {
-        submit_actions.response = function( response ) {
-          if( response.person.id ) {
-            $('form#new_linked_person #account_person_person_id').val( response.person.id );
-            $('form#new_linked_person').submit();
-          }
-          $('#sidebar_inset *').remove();
-        };
-      } else {
-        submit_actions.response = function( response ) {
-          $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
-          $('#sidebar_inset *').remove();
-        };
-      }
-      $(this).fn( RD.remote_form( submit_actions ) );
-      $(this).fn('submit', 'json');
-      return false;
+    $('#sidebar_inset form#new_person').livequery( function() {
+      $(this).fn( RD.remote_form( { response: function( response ) {
+        if( response.person.id ) {
+          $('form#new_linked_person #account_person_person_id').val( response.person.id );
+          $('form#new_linked_person').submit();
+        }
+        $('#sidebar_inset *').remove();
+      }}));
+      $(this).submit( function() { return $(this).fn('submit', 'json'); } );
     } );
 
     //delete link
-    $('.show_delete_block').livequery( 'click', function() { $('.delete_block').toggle(); return false; } ); 
+    $('.show_delete_block').livequery( 'click', function() { $(this).next('.delete_block').toggle(); return false; } ); 
 
-    //organization remote select
-    $.getJSON( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.js?callback=?', { badge: 'select', badge_target: '#select_orgs_block', selected: $('#account_organization_id').val() }, RD.ui.show_badge );
-    $('select#organization_name').livequery('change', function() {
-      $('#account_organization_id').val( $(this).val() );
-    });
-
-    //direct load
-    $('.badge_trigger_load').livequery( 'click', function() {
-      $('#sidebar_inset').load( $(this).attr('href') + " .ui-block:first", function( response ) {
-        $('#sidebar_inset').show('slow'); 
-        $('#sidebar_inset form').each( function() {
-          var remote_action = "#{Linein::CONFIG[:aquarius][:json_url]}" + $(this).attr( 'action' );
-          $(this).attr('action', remote_action);
-        }) ;
-      } );
-      return false;
-    });

@@ -22,7 +22,8 @@
         ajax: function (s) {
             var remote = /^(?:\w+:)?\/\/([^\/?#]+)/,
                 localdom = remote.exec(s.url);
-            if ( localdom && localdom[1] !== location.host && !( s.type.match(/GET/i) && s.dataType.match( /json/) ) ) { 
+            if ( localdom && localdom[1] !== location.host && !( s.type && s.dataType && s.type.match(/GET/i) && s.dataType.match( /json/) ) ) { 
+            //if ( localdom && localdom[1] !== location.host ) { 
                 // indicate our desire for window.name communication
                 s.url += (s.url.match(/\?/) ? '&' : '?') + "windowname=" + (s.authElement ? "auth" : true);
 
