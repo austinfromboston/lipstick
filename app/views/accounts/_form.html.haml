@@ -2,27 +2,26 @@
   = f.label :organization_id
   %span#select_orgs_block
   = f.hidden_field :organization_id
+  = link_to "new", new_organization_linein_path, :class => 'badge_trigger_load'
 %p
   = f.label :current_balance
   = f.text_field :current_balance, :size => 15
 
-#contacts_block
-  %fieldset#contacts_list
-    %legend Contacts
-    %ul
-      - for person in f.object.people_list
-        - contact = f.object.account_people.find_by_person_id( person.id )
-        %li
-          = link_to person.name, edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
-    = link_to "add contact", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger', :id => 'add_contact_link'
-    = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger', :'data-badge' =>'new_remote_form'
+- unless f.object.new_record?
+  #contacts_block
+    %fieldset#contacts_list
+      %legend Contacts
+      %ul
+        - for person in f.object.people_list
+          - contact = f.object.account_people.find_by_person_id( person.id )
+          %li
+            = link_to person.name, edit_person_linein_path( contact ), :class => 'badge_trigger', :'data-badge' =>'remote_edit'
+            = link_to 'affiliation', edit_account_person_path( contact ), :class => 'sidebar_inset_trigger'
+      = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'badge_trigger', :'data-badge' =>'new_remote_form'
+      = link_to "add affiliation", new_account_account_person_path( f.object ), :class => 'sidebar_inset_trigger'
 
 -content_for :sidebar do
   #sidebar_inset.js-hide
-
--#content_for :javascript_lib do
-  = javascript_include_tag "dojo/dojo"
-  = javascript_include_tag "jquery/plugins/dojo.windowName.js"
 
 -content_for :dom_ready do
   :plain
@@ -30,8 +29,7 @@
     //load local inset in sidebar
     $('.sidebar_inset_trigger').livequery( 'click', function() {
       var selector = '#content .ui-block';
-      $('#sidebar_inset').load( $(this).attr('href') + ' '  + selector, function( text, status, response ) {
-        //$('#sidebar_inset').append( $('<div></div>').append( text ).find( selector + ' script' ));
+      $('#sidebar_inset').load( $(this).attr('href') + ' '  + selector, function( response ) {
         #{ render :partial => 'account_people/form_script' }
         RD.ui.after_load();
         $('#sidebar_inset').show('slow');
@@ -53,7 +51,7 @@
 
     //submit sidebar
     //$('#sidebar_inset form').livequery('submit', function() {
-    $('#sidebar_inset form:not(#new_person)').livequery('submit', function() {
+    $('#sidebar_inset form:not(.badge)').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
         $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
         $('#sidebar_inset *').remove();
@@ -65,21 +63,29 @@
     //submit new linked person
     $('form#new_linked_person').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
-        console.log( 'made link' );
         $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
       }} ));
       return $(this).fn('submit', 'json');
     } );
 
     //submit new person
-    $('#sidebar_inset form#new_person').livequery('submit', function() {
-      $(this).fn( RD.remote_form( { response: function( response ) {
-        if( response.person.id ) {
-          $('form#new_linked_person #account_person_person_id').val( response.person.id );
-          $('form#new_linked_person').submit();
-        }
-        $('#sidebar_inset *').remove();
-      } } ) );
+    $('#sidebar_inset form.badge').livequery('submit', function() {
+      var submit_actions = { response: function() { $('#sidebar_inset *').remove(); }};
+      if( $(this).is("#new_person")) {
+        submit_actions.response = function( response ) {
+          if( response.person.id ) {
+            $('form#new_linked_person #account_person_person_id').val( response.person.id );
+            $('form#new_linked_person').submit();
+          }
+          $('#sidebar_inset *').remove();
+        };
+      } else {
+        submit_actions.response = function( response ) {
+          $('#contacts_block').load( window.location + ' #contacts_list', RD.ui.after_load );
+          $('#sidebar_inset *').remove();
+        };
+      }
+      $(this).fn( RD.remote_form( submit_actions ) );
       $(this).fn('submit', 'json');
       return false;
     } );
@@ -88,8 +94,19 @@
     $('.show_delete_block').livequery( 'click', function() { $('.delete_block').toggle(); return false; } ); 
 
     //organization remote select
-    //RD.ui.load_script( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.js?callback=RD.ui.show_badge&badge=select&badge_target=%23select_orgs_block&selected=' + $('#account_organization_id').val() );
     $.getJSON( '#{Linein::CONFIG[:aquarius][:json_url]}/organizations.js?callback=?', { badge: 'select', badge_target: '#select_orgs_block', selected: $('#account_organization_id').val() }, RD.ui.show_badge );
     $('select#organization_name').livequery('change', function() {
       $('#account_organization_id').val( $(this).val() );
+    });
+
+    //direct load
+    $('.badge_trigger_load').livequery( 'click', function() {
+      $('#sidebar_inset').load( $(this).attr('href') + " .ui-block:first", function( response ) {
+        $('#sidebar_inset').show('slow'); 
+        $('#sidebar_inset form').each( function() {
+          var remote_action = "#{Linein::CONFIG[:aquarius][:json_url]}" + $(this).attr( 'action' );
+          $(this).attr('action', remote_action);
+        }) ;
+      } );
+      return false;
     });

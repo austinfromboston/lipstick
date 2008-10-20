@@ -1,5 +1,5 @@
 :plain
-  $.getJSON( '#{Linein::CONFIG[:aquarius][:json_url]}/people.js?callback=?', { badge: 'select', badge_target: '#select_people_block', selected: $('#account_person_person_id').val() }, RD.ui.show_badge );
+  $.getJSON( '#{Linein::CONFIG[:aquarius][:json_url]}/people.js?callback=?', { badge: 'select', badge_target: '#select_people_block', selected: $('form:visible #account_person_person_id').val() }, RD.ui.show_badge );
   $('select#person_name').livequery('change', function() {
-    $('#account_person_person_id').val( $(this).val() );
+    $('form:visible #account_person_person_id').val( $(this).val() );
   });

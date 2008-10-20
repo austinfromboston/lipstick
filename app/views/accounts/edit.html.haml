@@ -4,7 +4,7 @@
     = render :partial => 'form', :locals => { :f => f }
     %p.submit
       = f.submit "Update Account"
-  - form_for @account.account_people.build, {}, :html => { :id => 'new_linked_person' }do |f|
+  - form_for @account.account_people.build, {}, :html => { :id => 'new_linked_person', :class => 'js-staging' }do |f|
     = f.hidden_field :person_id
     = f.hidden_field :account_id
   
