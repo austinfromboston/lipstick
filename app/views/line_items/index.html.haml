@@ -1,0 +1,8 @@
+.span-12
+  .ui-block
+    %h6.info Line Items
+    .clear
+    %ul#line_items
+      - for line_item in @line_items
+        %li
+          = render :partial => 'line_item', :object => line_item

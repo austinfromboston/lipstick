@@ -9,7 +9,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20080927175337) do
+ActiveRecord::Schema.define(:version => 20081026192752) do
 
   create_table "account_people", :force => true do |t|
     t.integer "account_id"
@@ -45,6 +45,10 @@ ActiveRecord::Schema.define(:version => 20080927175337) do
     t.datetime "writeoff_date"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "category",        :limit => 40
+    t.string   "story_header",    :limit => 100
+    t.integer  "contract_id"
+    t.integer  "account_id"
   end
 
 end

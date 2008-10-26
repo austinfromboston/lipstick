@@ -1,0 +1,9 @@
+.span-12
+  .ui-block
+    %h6.info New Line Item
+    - form_for @line_item do |f|
+      = render :partial => 'form', :locals => { :f => f }
+      %p.submit
+        = f.submit "Create"
+    
+

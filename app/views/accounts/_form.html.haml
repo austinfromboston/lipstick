@@ -8,7 +8,7 @@
   = f.text_field :current_balance, :size => 15
 
 - unless f.object.new_record?
-  #contacts_block.remote_block
+  #people_block.remote_block
     %fieldset#contacts_list.remote_content
       %legend People
       %ul
@@ -26,8 +26,25 @@
     %ul
       - for contract in f.object.contracts
         %li
-          = link_to contract.name, linein_url( :edit_project_path, contract.project_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_project)' }.to_json
-          = link_to contract.contract_type, linein_url( :edit_contract_path, contract ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_contract)' }.to_json
+          .contract
+            = link_to contract.contract_type, linein_url( :edit_contract_path, contract ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_contract)' }.to_json
+            = link_to 'line items', contract_line_items_path(contract), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(#line_items)' }.to_json
+            = link_to 'add', new_contract_line_item_path(contract), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form#new_line_item)' }.to_json
+          .project
+            Project:
+            = link_to contract.name, linein_url( :edit_project_path, contract.project_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_project)' }.to_json
+
+#line_items_block.remote_block
+  %fieldset.remote_content
+    %legend Unresolved Line Items
+    %ul
+      - for line_item in f.object.line_items.outstanding
+        %li
+          $
+          = "%0.2f" % line_item.final_amount
+          = link_to line_item.name, edit_line_item_path( line_item ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_line_item)' }.to_json
+
+= link_to 'new invoice', new_account_invoice_path( f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_invoice)' }.to_json
 
 - content_for :sidebar do
   #sidebar_inset.js-staging
@@ -47,9 +64,8 @@
       return false;
     } );
 
-    //contacts list
+    //remote blocks
     $('.remote_block').bind( 'refresh', function() {
-      console.log( window.location + ' #' + $(this).attr('id') + ' .remote_content' );
       $(this).load( window.location + ' #' + $(this).attr('id') + ' .remote_content' );
     } );
 
@@ -68,7 +84,7 @@
     //submit new linked person
     $('form#new_linked_person').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
-        $('#contacts_block').trigger('refresh');
+        $('#people_block').trigger('refresh');
       }} ));
       return $(this).fn('submit', 'json');
     } );

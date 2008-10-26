@@ -1,0 +1,11 @@
+%h3
+  - if !line_item.story_header.blank?
+    = line_item.story_header
+.desc
+  = line_item.description
+.amount
+  = line_item.final_amount
+.status
+  = line_item.billable_status
+.toolbar
+  = link_to 'edit', edit_line_item_path( line_item )

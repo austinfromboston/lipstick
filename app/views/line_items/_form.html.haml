@@ -1,0 +1,18 @@
+%p
+  = f.label :contract_id
+  = f.text_field :contract_id, :class => 'remote_select', :metadata => { :get => linein_url( :contracts_path ) }.to_json
+%p
+  = f.label :story_header, "Estimate Category"
+  = f.text_field :story_header
+%p
+  = f.label :description
+  = f.text_area :description, :class => 'minor'
+%p
+  = f.label :final_amount, "Amount $"
+  = f.text_field :final_amount, :size => 12
+%p
+  = f.label :billable_status
+  = f.select :billable_status, LineItem::BILLABLE_STATES
+
+- content_for :dom_ready do
+  $('.remote_select').livequery( RD.ui.load_remote_select );
