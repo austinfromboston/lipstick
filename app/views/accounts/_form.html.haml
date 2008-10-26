@@ -2,13 +2,14 @@
   = f.label :organization_id
   = f.text_field :organization_id, :class => 'remote_select', :metadata => { :get => linein_url ( :organizations_path ) }.to_json
   = link_to "new", linein_url(:new_organization_path), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_organization)' }.to_json
+  = link_to "edit", linein_url(:edit_organization_path, f.object.organization_id), :class => 'remote_sidebar js-staging edit_select_target', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_organization)' }.to_json
 %p
   = f.label :current_balance
   = f.text_field :current_balance, :size => 15
 
 - unless f.object.new_record?
-  #contacts_block
-    %fieldset#contacts_list
+  #contacts_block.remote_block
+    %fieldset#contacts_list.remote_content
       %legend People
       %ul
         - for person in f.object.people_list
@@ -19,13 +20,14 @@
       = link_to "new contact", linein_url( :new_organization_person_path, f.object.organization_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_person)' }.to_json
       = link_to "add affiliation", linein_url( :new_account_account_person_path, f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_account_person)' }.to_json
 
-%fieldset#contracts_list
-  %legend Contracts
-  %ul
-    - for contract in f.object.contracts
-      %li
-        = link_to contract.name, linein_url( :edit_project_path, contract.project_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_project)' }.to_json
-        = link_to contract.contract_type, linein_url( :edit_contract_path, contract ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_contract)' }.to_json
+#contracts_block.remote_block
+  %fieldset.remote_content
+    %legend Contracts
+    %ul
+      - for contract in f.object.contracts
+        %li
+          = link_to contract.name, linein_url( :edit_project_path, contract.project_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_project)' }.to_json
+          = link_to contract.contract_type, linein_url( :edit_contract_path, contract ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_contract)' }.to_json
 
 - content_for :sidebar do
   #sidebar_inset.js-staging
@@ -40,24 +42,23 @@
       var meta = $(this).metadata();
       $('#sidebar_inset').load( $(this).attr('href') + ' '  + meta.selector, function( response ) {
         $('#sidebar_inset').show('slow');
-        if( meta.remote_domain !== undefined ) {
-          $('#sidebar_inset a').each( RD.ui.remote_connect( meta.remote_domain, 'href' ) );
-          $('#sidebar_inset form').each( RD.ui.remote_connect( meta.remote_domain, 'action' ) );
-        }
+        $('#sidebar_inset').each( RD.ui.remote_connect( meta.remote_domain ) );
       });
       return false;
     } );
 
     //contacts list
-    $('#contacts_block').bind( 'refresh', function() {
-      $(this).load( window.location + ' #contacts_list' );
+    $('.remote_block').bind( 'refresh', function() {
+      console.log( window.location + ' #' + $(this).attr('id') + ' .remote_content' );
+      $(this).load( window.location + ' #' + $(this).attr('id') + ' .remote_content' );
     } );
 
 
     //submit sidebar
-    $('#sidebar_inset form[id*=person]:not(#new_person):not(#new_organization)').livequery('submit', function() {
+    $('#sidebar_inset form:not(#new_person):not(#new_organization)').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
-        $('#contacts_block').trigger('refresh');
+        $('.remote_block').trigger('refresh');
+        $('.remote_select').trigger('refresh');
         $('#sidebar_inset *').remove();
       } } ) );
       $(this).fn('submit', 'json');
@@ -84,13 +85,18 @@
       $( this ) .submit( function() { return $( this ).fn('submit', 'json'); } );
     } );
 
+    $('.remote_select').livequery('refresh', function( ev, updated_value )  {
+      $(this).next('.remote_select_block').remove();
+      if( updated_value !== undefined ) {
+        $(this).val( updated_value );
+      }
+      RD.ui.load_remote_select.call(this);
+    } );
+
     //submit new organization
     $('#sidebar_inset form#new_organization').livequery( function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
-        if( response.organization.id ) {
-          $('#account_organization_id.remote_select').next('.remote_select_block').remove();
-          $('#account_organization_id.remote_select').val( response.organization.id ).each( RD.ui.load_remote_select );
-        }
+        $('#account_organization_id').trigger('refresh', response.organization.id );
         $('#sidebar_inset *').remove();
       }}));
       $(this).submit( function() { return $(this).fn('submit', 'json'); } );
@@ -99,3 +105,13 @@
     //delete link
     $('.show_delete_block').livequery( 'click', function() { $(this).next('.delete_block').toggle(); return false; } ); 
 
+    //edit selected
+    $('.edit_select_target').livequery( 'refresh', function(ev) {
+      var updated = $(this).parent().find('.remote_select').val(); 
+      if( updated !== undefined && updated !== '' ) {
+        $(this).attr('href', $(this).attr('href').replace( /\/\d+\//, '/' + updated + '/'));
+        $(this).show();
+      } else if ( this !== undefined ) {
+        $(this).hide();
+      }
+    } );
