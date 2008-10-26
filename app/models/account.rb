@@ -10,5 +10,10 @@ class Account < ActiveRecord::Base
     return [] if person_ids.empty?
     Person.find :all, :params => { :ids => person_ids }
   end
+
+  def contracts
+    Contract.find :all, :params => { :query => { :account_id => id }}
+  end
+
 end
 

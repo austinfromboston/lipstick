@@ -1,8 +1,7 @@
 %p
   = f.label :organization_id
-  %span#select_orgs_block
-  = f.hidden_field :organization_id
-  = link_to "new", new_organization_linein_path, :class => 'badge_trigger_load'
+  = f.text_field :organization_id, :class => 'remote_select', :metadata => { :get => linein_url ( :organizations_path ) }.to_json
+  = link_to "new", linein_url(:new_organization_path), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_organization)' }.to_json
 %p
   = f.label :current_balance
   = f.text_field :current_balance, :size => 15
@@ -10,17 +9,25 @@
 - unless f.object.new_record?
   #contacts_block
     %fieldset#contacts_list
-      %legend Contacts
+      %legend People
       %ul
         - for person in f.object.people_list
           - contact = f.object.account_people.find_by_person_id( person.id )
           %li
-            = link_to person.name, edit_person_linein_path( contact ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_person)' }.to_json
+            = link_to person.name, linein_url( :edit_person_path, person ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_person)' }.to_json
             = link_to 'affiliation', edit_account_person_path( contact ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_account_person)' }.to_json
-      = link_to "new contact", new_organization_person_linein_path( f.object.organization_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_person)' }.to_json
-      = link_to "add affiliation", new_account_account_person_path( f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_account_person)' }.to_json
+      = link_to "new contact", linein_url( :new_organization_person_path, f.object.organization_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_person)' }.to_json
+      = link_to "add affiliation", linein_url( :new_account_account_person_path, f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_account_person)' }.to_json
 
--content_for :sidebar do
+%fieldset#contracts_list
+  %legend Contracts
+  %ul
+    - for contract in f.object.contracts
+      %li
+        = link_to contract.name, linein_url( :edit_project_path, contract.project_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_project)' }.to_json
+        = link_to contract.contract_type, linein_url( :edit_contract_path, contract ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_contract)' }.to_json
+
+- content_for :sidebar do
   #sidebar_inset.js-staging
 
 -content_for :dom_ready do
@@ -48,7 +55,7 @@
 
 
     //submit sidebar
-    $('#sidebar_inset form[id*=person]:not(#new_person)').livequery('submit', function() {
+    $('#sidebar_inset form[id*=person]:not(#new_person):not(#new_organization)').livequery('submit', function() {
       $(this).fn( RD.remote_form( { response: function( response ) {
         $('#contacts_block').trigger('refresh');
         $('#sidebar_inset *').remove();
@@ -66,11 +73,23 @@
     } );
 
     //submit new person
-    $('#sidebar_inset form#new_person').livequery( function() {
-      $(this).fn( RD.remote_form( { response: function( response ) {
+    $( '#sidebar_inset form#new_person' ). livequery ( function() {
+      $( this ) .fn( RD.remote_form( { response:  function( response ) {
         if( response.person.id ) {
-          $('form#new_linked_person #account_person_person_id').val( response.person.id );
-          $('form#new_linked_person').submit();
+          $( 'form#new_linked_person #account_person_person_id' ).val( response.person.id );
+          $( 'form#new_linked_person' ).submit();
+        }
+        $( '#sidebar_inset *' ).remove();
+      }}));
+      $( this ) .submit( function() { return $( this ).fn('submit', 'json'); } );
+    } );
+
+    //submit new organization
+    $('#sidebar_inset form#new_organization').livequery( function() {
+      $(this).fn( RD.remote_form( { response: function( response ) {
+        if( response.organization.id ) {
+          $('#account_organization_id.remote_select').next('.remote_select_block').remove();
+          $('#account_organization_id.remote_select').val( response.organization.id ).each( RD.ui.load_remote_select );
         }
         $('#sidebar_inset *').remove();
       }}));

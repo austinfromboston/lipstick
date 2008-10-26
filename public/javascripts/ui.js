@@ -13,6 +13,15 @@ RD.ui = {
       }
     };
   },
+  load_remote_select: function() {
+    var self = this, meta = $(this).metadata();
+    $.getJSON( meta.get + '.js?callback=?', { badge: 'select' }, function( response ) {
+      $(self).hide().after( '<div class="remote_select_block"></div>')
+            .next().html(response.content )
+            .find('select').val( $(self).val() )
+            .change( function() { $(self).val($(this).val()); } ); 
+    } );
+  },
   after_load: function() {
     //$('.js-hide').hide();
     //$('.js-only').show();
