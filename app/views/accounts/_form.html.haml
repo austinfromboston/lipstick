@@ -3,9 +3,30 @@
   = f.text_field :organization_id, :class => 'remote_select', :metadata => { :get => linein_url ( :organizations_path ) }.to_json
   = link_to "new", linein_url(:new_organization_path), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_organization)' }.to_json
   = link_to "edit", linein_url(:edit_organization_path, f.object.organization_id), :class => 'remote_sidebar js-staging edit_select_target', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_organization)' }.to_json
+#line_items_block.remote_block
+  %fieldset.remote_content
+    %legend Unresolved Line Items
+    %ul
+      - for line_item in f.object.line_items.outstanding
+        %li
+          $
+          = "%0.2f" % line_item.final_amount
+          = link_to line_item.name, edit_line_item_path( line_item ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_line_item)' }.to_json
+
+    = link_to 'new invoice', new_account_invoice_path( f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_invoice)' }.to_json
+
 %p
   = f.label :current_balance
   = f.text_field :current_balance, :size => 15
+
+#invoices.remote_block
+  %fieldset.remote_content
+    %legend Invoices
+    %ul
+      - for invoice in f.object.invoices
+        %li
+          = link_to invoice.period_ending_date.strftime('%Y-%m-%d'), formatted_invoice_path( invoice, :pdf ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_invoice)' }.to_json
+          = "$%0.2f" % invoice.amount_due
 
 - unless f.object.new_record?
   #people_block.remote_block
@@ -33,18 +54,6 @@
           .project
             Project:
             = link_to contract.name, linein_url( :edit_project_path, contract.project_id ), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_project)' }.to_json
-
-#line_items_block.remote_block
-  %fieldset.remote_content
-    %legend Unresolved Line Items
-    %ul
-      - for line_item in f.object.line_items.outstanding
-        %li
-          $
-          = "%0.2f" % line_item.final_amount
-          = link_to line_item.name, edit_line_item_path( line_item ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_line_item)' }.to_json
-
-= link_to 'new invoice', new_account_invoice_path( f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_invoice)' }.to_json
 
 - content_for :sidebar do
   #sidebar_inset.js-staging
@@ -131,3 +140,9 @@
         $(this).hide();
       }
     } );
+
+    $('#update_line_items').livequery('click', function() {
+      $('#line_items .remote_content').remove();
+      $('#line_items').load( $(this).metadata().get + '?' + $('form.new_invoice').serialize() + ' #line_items .remote_content'); 
+      return false;
+    });

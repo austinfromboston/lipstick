@@ -6,4 +6,7 @@ module ApplicationHelper
   def person_options
     Person.find(:all).sort_by { |p| ( p.name || p.email || '' ) }.map { |o| [ ( o.name || o.email ), o.id ] }
   end
+  def account_options
+    Account.all.map { |a| [ a.organization_name, a.id ] }
+  end
 end
