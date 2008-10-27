@@ -1,3 +1,6 @@
 [submodule "vendor/plugins/linein"]
 	path = vendor/plugins/linein
 	url = git@github.com:austinfromboston/linein.git
+[submodule "vendor/gems/prawn"]
+	path = vendor/gems/prawn
+	url = git://github.com/sandal/prawn.git

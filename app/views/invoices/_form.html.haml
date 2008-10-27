@@ -1,0 +1,21 @@
+%p
+  = f.label :account_id
+  = f.select :account_id, account_options
+%p
+  = f.label :period_ending_date
+  = f.date_select :period_ending_date
+  - if f.object.new_record?
+    = link_to 'reload items', new_invoice_path( :invoice => { :account_id => f.object.account_id } ), :id => 'update_line_items', :metadata => { :get => new_invoice_path }.to_json
+
+- if f.object.account
+  #line_items.remote_block
+    %fieldset.remote_content
+      %legend Line Items
+      -#- for line_item in f.object.line_items do
+      - f.object.line_items.each do |line_item|
+        %p.checkbox
+          = check_box_tag "invoice[line_item_ids][]", line_item.id, true, :id => "invoice_line_item_ids_#{line_item.id}"
+          %label.inline{:for => "invoice_line_item_ids_#{line_item.id}" }
+            = "$%0.2f" % line_item.final_amount
+            = line_item.name
+

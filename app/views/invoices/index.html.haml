@@ -1,0 +1,7 @@
+.span-12
+  .ui-block
+    %h6.info Invoices
+    %ul#invoices
+      - for invoice in @invoices
+        %li
+          = render :partial => 'invoice', :object => invoice

@@ -25,7 +25,8 @@
     %ul
       - for invoice in f.object.invoices
         %li
-          = link_to invoice.period_ending_date.strftime('%Y-%m-%d'), formatted_invoice_path( invoice, :pdf ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_invoice)' }.to_json
+          = link_to invoice.period_ending_date.strftime('%Y-%m-%d'), formatted_invoice_path( invoice, :pdf )
+          -#:class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_invoice)' }.to_json
           = "$%0.2f" % invoice.amount_due
 
 - unless f.object.new_record?

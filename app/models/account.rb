@@ -1,5 +1,6 @@
 class Account < ActiveRecord::Base
   has_many :account_people
+  has_many :people
   has_many :contracts
   has_many :line_items
   has_many :invoices

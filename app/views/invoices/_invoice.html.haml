@@ -1,0 +1,15 @@
+.name
+  = link_to invoice.account.organization_name, edit_account_path(invoice.account)
+
+-if invoice.period_ending_date
+  .ending_date
+    for period ending
+    = invoice.period_ending_date.strftime '%Y-%m-%d'
+    
+-if invoice.sent_date
+  .sent_date
+    sent
+    = invoice.sent_date.strftime '%Y-%m-%d'
+.total
+  Amount Due
+  = "$%0.2f" % invoice.amount_due
