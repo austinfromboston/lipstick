@@ -2,12 +2,13 @@
   = f.label :organization_id
   = f.text_field :organization_id, :class => 'remote_select', :metadata => { :get => linein_url ( :organizations_path ) }.to_json
   = link_to "new", linein_url(:new_organization_path), :class => 'remote_sidebar', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.new_organization)' }.to_json
-  = link_to "edit", linein_url(:edit_organization_path, f.object.organization_id), :class => 'remote_sidebar js-staging edit_select_target', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_organization)' }.to_json
+  - if f.object.organization_id
+    = link_to "edit", linein_url(:edit_organization_path, f.object.organization_id), :class => 'remote_sidebar js-staging edit_select_target', :metadata => { :remote_domain => linein_host, :selector => '.ui-block:has(form.edit_organization)' }.to_json
 #line_items_block.remote_block
   %fieldset.remote_content
     %legend Unresolved Line Items
     %ul
-      - for line_item in f.object.line_items.outstanding
+      - for line_item in f.object.line_items.billable
         %li
           $
           = "%0.2f" % line_item.final_amount
@@ -15,6 +16,15 @@
 
     = link_to 'new invoice', new_account_invoice_path( f.object ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.new_invoice)' }.to_json
 
+    %h4
+      Held Items
+    %ul
+      - for line_item in f.object.line_items.held
+        %li
+          $
+          = "%0.2f" % line_item.final_amount
+          = link_to line_item.name, edit_line_item_path( line_item ), :class => 'remote_sidebar', :metadata => { :selector => '.ui-block:has(form.edit_line_item)' }.to_json
+          
 %p
   = f.label :current_balance
   = f.text_field :current_balance, :size => 15
